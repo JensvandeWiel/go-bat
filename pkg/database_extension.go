@@ -6,6 +6,11 @@ type DatabaseExtension struct {
 	db *sqlx.DB
 }
 
+func (d *DatabaseExtension) Register(app *Bat) error {
+	app.Logger.Info("Registering DatabaseExtension")
+	return nil
+}
+
 func (d *DatabaseExtension) GetDB() *sqlx.DB {
 	return d.db
 }

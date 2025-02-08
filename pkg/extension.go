@@ -5,18 +5,22 @@ import (
 	"reflect"
 )
 
+type Extension interface {
+	Register(app *Bat) error
+}
+
 var ExtensionNotPointerError = errors.New("given extension must be a pointer")
 
-func (b *Bat) RegisterExtension(extension interface{}) error {
+func (b *Bat) RegisterExtension(extension Extension) error {
 	if reflect.TypeOf(extension).Kind() != reflect.Ptr {
 		return ExtensionNotPointerError
 	}
 	b.extensions[reflect.TypeOf(extension)] = extension
-	return nil
+	return extension.Register(b)
 }
 
-func (b *Bat) RegisterExtensions(extension ...interface{}) error {
-	for _, ext := range extension {
+func (b *Bat) RegisterExtensions(extensions ...Extension) error {
+	for _, ext := range extensions {
 		err := b.RegisterExtension(ext)
 		if err != nil {
 			return err
@@ -25,7 +29,7 @@ func (b *Bat) RegisterExtensions(extension ...interface{}) error {
 	return nil
 }
 
-func GetExtension[T any](b *Bat) *T {
-	ext := b.extensions[reflect.TypeOf((*T)(nil))]
-	return ext.(*T)
+func GetExtension[T Extension](b *Bat) T {
+	ext := b.extensions[reflect.TypeOf((*T)(nil)).Elem()]
+	return ext.(T)
 }

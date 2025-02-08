@@ -1,6 +1,6 @@
 package go_bat
 
 type Controller interface {
-	Register(app *BatBase) error
+	Register(app *Bat) error
 	GetControllerName() string
 }

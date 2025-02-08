@@ -1,6 +1,6 @@
 package main
 
-import "github.com/JensvandeWiel/go_bat/example/cmd"
+import "github.com/JensvandeWiel/go-bat/example/cmd"
 
 func main() {
 	cmd.Execute()

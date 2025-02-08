@@ -1,4 +1,4 @@
-module github.com/JensvandeWiel/go_bat
+module github.com/JensvandeWiel/go-bat
 
 go 1.23
 

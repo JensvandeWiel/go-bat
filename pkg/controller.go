@@ -1,4 +1,4 @@
-package go_bat
+package pkg
 
 type Controller interface {
 	Register(app *Bat) error

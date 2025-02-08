@@ -1,6 +1,9 @@
 package pkg
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"reflect"
+)
 
 type DatabaseExtension struct {
 	db *sqlx.DB
@@ -9,6 +12,10 @@ type DatabaseExtension struct {
 func (d *DatabaseExtension) Register(app *Bat) error {
 	app.Logger.Info("Registering DatabaseExtension")
 	return nil
+}
+
+func (d *DatabaseExtension) Requirements() []reflect.Type {
+	return []reflect.Type{}
 }
 
 func (d *DatabaseExtension) GetDB() *sqlx.DB {

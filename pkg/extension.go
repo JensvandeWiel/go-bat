@@ -38,6 +38,7 @@ func (b *Bat) resolveLoadOrder(extensions []Extension) ([]Extension, error) {
 		for _, req := range ext.Requirements() {
 			inDegree[req]++
 		}
+		b.Logger.Debug("Extension has requirements", "extension", extType, "requirements", ext.Requirements())
 	}
 
 	var order []Extension
@@ -48,10 +49,13 @@ func (b *Bat) resolveLoadOrder(extensions []Extension) ([]Extension, error) {
 		}
 	}
 
+	b.Logger.Debug("Initial queue", "queue", queue)
+
 	for len(queue) > 0 {
 		ext := queue[0]
 		queue = queue[1:]
 		order = append(order, ext)
+		b.Logger.Debug("Processing extension", "extension", reflect.TypeOf(ext))
 		for _, req := range graph[reflect.TypeOf(ext)] {
 			inDegree[req]--
 			if inDegree[req] == 0 {
@@ -63,11 +67,15 @@ func (b *Bat) resolveLoadOrder(extensions []Extension) ([]Extension, error) {
 				}
 			}
 		}
+		b.Logger.Debug("Current load order", "order", order)
+		b.Logger.Debug("Current queue", "queue", queue)
 	}
 
 	if len(order) != len(extensions) {
+		b.Logger.Error("Cyclic dependency detected")
 		return nil, CyclicDependencyError
 	}
 
+	b.Logger.Debug("Final load order", "order", order)
 	return order, nil
 }

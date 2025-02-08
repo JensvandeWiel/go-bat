@@ -1,6 +1,8 @@
 package go_bat
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func (b *Bat) RegisterExtension(extension interface{}) {
 	b.extensions[reflect.TypeOf(extension)] = extension
@@ -12,6 +14,7 @@ func (b *Bat) RegisterExtensions(extension ...interface{}) {
 	}
 }
 
-func GetExtension[T any](em *Bat) T {
-	return em.extensions[reflect.TypeOf((*T)(nil)).Elem()].(T)
+func GetExtension[T any](b *Bat) *T {
+	ext := b.extensions[reflect.TypeOf((*T)(nil))]
+	return ext.(*T)
 }

@@ -16,9 +16,7 @@ require (
 	github.com/valkey-io/valkey-go v1.0.54
 )
 
-replace (
-	github.com/romsar/gonertia v1.3.5 => github.com/romsar/gonertia/v2 v2.0.3
-)
+replace github.com/romsar/gonertia v1.3.5 => github.com/romsar/gonertia/v2 v2.0.3
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
@@ -47,6 +45,8 @@ require (
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240513124658-fba389f38bae // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3 // indirect
+	github.com/mandelsoft/vfs v0.4.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -54,6 +54,7 @@ require (
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect

@@ -1,0 +1,120 @@
+package cmd
+
+import (
+	"errors"
+	"fmt"
+	bat "github.com/JensvandeWiel/go-bat/pkg"
+	"github.com/joho/godotenv"
+	"log/slog"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var cfgFile string
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use: "{{ .ProjectName }}",
+	// Uncomment the following line if your bare application
+	// has an action associated with it:
+	// Run: func(cmd *cobra.Command, args []string) { },
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+
+	// Load in .env files first
+	if _, err := os.Stat(".env"); errors.Is(err, os.ErrNotExist) {
+		// Do nothing
+	} else if err != nil {
+		cobra.CheckErr(err)
+	} else {
+		err := godotenv.Load()
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+	}
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/{{ .ProjectName }}.yaml)")
+
+	// Cobra also supports local flags, which will only run
+	// when this action is called directly.
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.PersistentFlags().String("CONSOLE_FORMAT", "color", "the format to use for the console logger (json, color)")
+	viper.BindPFlag("CONSOLE_FORMAT", rootCmd.PersistentFlags().Lookup("CONSOLE_FORMAT"))
+	rootCmd.PersistentFlags().String("LEVEL", "INFO", "the log level to use (DEBUG, INFO, WARN, ERROR)")
+	viper.BindPFlag("LEVEL", rootCmd.PersistentFlags().Lookup("LEVEL"))
+	rootCmd.PersistentFlags().String("ENV", "dev", "the environment to run in")
+	viper.BindPFlag("ENV", rootCmd.PersistentFlags().Lookup("ENV"))
+	rootCmd.PersistentFlags().String("SERVE_PORT", "8080", "The port to serve the application on")
+	viper.BindPFlag("SERVE_PORT", rootCmd.PersistentFlags().Lookup("SERVE_PORT"))
+	rootCmd.PersistentFlags().String("SERVE_HOST", "localhost", "The host to serve the application on")
+	viper.BindPFlag("SERVE_HOST", rootCmd.PersistentFlags().Lookup("SERVE_HOST"))
+}
+
+func parseLogLevel(logLevel string) slog.Level {
+	if viper.GetString("ENV") == "dev" {
+		return slog.LevelDebug
+	}
+
+	switch logLevel {
+	case "DEBUG":
+		return slog.LevelDebug
+	case "INFO":
+		return slog.LevelInfo
+	case "WARN":
+		return slog.LevelWarn
+	case "ERROR":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
+func parseOutputType(outputType string) bat.LoggerOutputType {
+	switch outputType {
+	case "json":
+		return bat.LoggerOutputTypeJSON
+	case "color":
+		return bat.LoggerOutputTypeHuman
+	default:
+		return bat.LoggerOutputTypeHuman
+	}
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
+	if cfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFile)
+	} else {
+		// Find home directory.
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+
+		// Search config in home directory with name ".{{ .ProjectName }}" (without extension).
+		viper.AddConfigPath(home)
+		viper.AddConfigPath(".")
+		viper.SetConfigType("yaml")
+		viper.SetConfigName("{{ .ProjectName }}")
+	}
+
+	viper.AutomaticEnv() // read in environment variables that match
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}

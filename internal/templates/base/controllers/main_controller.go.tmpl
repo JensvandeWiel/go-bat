@@ -1,0 +1,28 @@
+package controllers
+
+import (
+	bat "github.com/JensvandeWiel/go-bat/pkg"
+	"github.com/labstack/echo/v4"
+)
+
+type MainController struct {
+	bat *bat.Bat
+}
+
+func NewMainController() *MainController {
+	return &MainController{}
+}
+
+func (c *MainController) Register(app *bat.Bat) error {
+	c.bat = app
+	app.GET("/", c.Index)
+	return nil
+}
+
+func (c *MainController) GetControllerName() string {
+	return "MainController"
+}
+
+func (c *MainController) Index(ctx echo.Context) error {
+	return ctx.String(200, "Hello, World!")
+}

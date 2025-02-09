@@ -125,7 +125,6 @@ func (i *InertiaExtension) createHash() string {
 
 // Register registers the InertiaExtension
 func (i *InertiaExtension) Register(app *Bat) error {
-	app.Logger.Info("Instantiating Inertia")
 	i.flashExtension = GetExtension[*FlashExtension](app)
 	i.logger = &Logger{app.Logger.With(slog.String("module", "inertia"))}
 	var err error
@@ -146,16 +145,13 @@ func (i *InertiaExtension) Register(app *Bat) error {
 	if err != nil {
 		return err
 	}
-
 	err = i.Inertia.ShareTemplateFunc("reactRefresh", i.reactRefresh())
 	if err != nil {
 		return err
 	}
-
 	app.Echo.Use(echo.WrapMiddleware(i.Inertia.Middleware))
-
 	if i.isDev {
-		i.logger.Info("Setting up dev proxy")
+		i.logger.Debug("Setting up dev proxy")
 		err := i.setupDevProxy(app)
 		if err != nil {
 			i.logger.Error("Failed to setup dev proxy", err)

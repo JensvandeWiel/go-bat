@@ -21,16 +21,20 @@ func (b *Bat) registerExtensions(extensions ...Extension) error {
 		return err
 	}
 	for _, ext := range order {
+		b.Logger.Debug("Registering extension", "extension", reflect.TypeOf(ext).Elem().Name())
 		err := ext.Register(b)
 		if err != nil {
+			b.Logger.Error("Failed to register extension", "extension", reflect.TypeOf(ext).Elem().Name(), "error", err)
 			return err
 		}
 		b.extensions[reflect.TypeOf(ext)] = ext
+		b.Logger.Debug("Extension registered", "extension", reflect.TypeOf(ext).Elem().Name())
 	}
 	return nil
 }
 
 func (b *Bat) resolveLoadOrder(extensions []Extension) ([]Extension, error) {
+	b.Logger.Debug("Resolving extension load order")
 	// Dependency graph: Maps each extension to the list of extensions that depend on it
 	graph := make(map[reflect.Type][]reflect.Type)
 	// In-degree: Keeps track of how many dependencies each extension has
@@ -127,6 +131,7 @@ func (b *Bat) resolveLoadOrder(extensions []Extension) ([]Extension, error) {
 
 	// Debug: Log the final resolved extension load order
 	b.Logger.Debug("Final load order", "order", getExtensionNames(order))
+	b.Logger.Debug("Extension load order resolved")
 	return order, nil
 }
 

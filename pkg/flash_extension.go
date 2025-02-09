@@ -62,9 +62,9 @@ func NewFlashExtension(opts ...FlashExtensionOption) (*FlashExtension, error) {
 
 // Register registers the flash extension
 func (f *FlashExtension) Register(app *Bat) error {
+	f.logger = app.Logger.With("module", "flash_extension")
 	f.client = GetExtension[*SessionExtension](app).vClient
 	f.sessionExtension = GetExtension[*SessionExtension](app)
-	f.logger = app.Logger.With("module", "flash_extension")
 	return nil
 }
 

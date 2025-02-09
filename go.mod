@@ -16,6 +16,10 @@ require (
 	github.com/valkey-io/valkey-go v1.0.54
 )
 
+replace (
+	github.com/romsar/gonertia v1.3.5 => github.com/romsar/gonertia/v2 v2.0.3
+)
+
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect

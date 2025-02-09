@@ -19,3 +19,6 @@ var GoSumTmpl string
 
 //go:embed main.go.tmpl
 var MainTmpl string
+
+//go:embed .gitignore.tmpl
+var GitIgnoreTmpl string

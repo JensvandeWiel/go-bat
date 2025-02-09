@@ -17,6 +17,7 @@ type Project struct {
 	PackageName string
 	Force       bool
 	Extras      []Extra
+	funcMap     template.FuncMap
 	tempDir     string
 }
 
@@ -26,6 +27,29 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return nil, err
 	}
 
+	funcMap := make(template.FuncMap)
+	funcMap["getExtraModEntries"] = func(p *Project) string {
+		modEntries := ""
+		for _, extra := range p.Extras {
+			for _, entry := range extra.ModEntries() {
+				modEntries += entry + "\n"
+			}
+		}
+
+		return modEntries
+	}
+
+	funcMap["getExtraGitIgnoreEntries"] = func(p *Project) string {
+		gitIgnoreEntries := ""
+		for _, extra := range p.Extras {
+			for _, entry := range extra.GitIgnoreEntries() {
+				gitIgnoreEntries += entry + "\n"
+			}
+		}
+
+		return gitIgnoreEntries
+	}
+
 	return &Project{
 		ProjectName: projectName,
 		PackageName: packageName,
@@ -33,6 +57,7 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		WorkDir:     workDir,
 		tempDir:     tempDir,
 		logger:      logger,
+		funcMap:     make(template.FuncMap),
 		Force:       force,
 	}, nil
 }
@@ -71,7 +96,7 @@ func (p *Project) writeStringTemplateToFile(filePath string, tmplString string, 
 		return err
 	}
 
-	tmpl, err := template.New(path.Base(filePath)).Parse(tmplString)
+	tmpl, err := template.New(path.Base(filePath)).Funcs(p.funcMap).Parse(tmplString)
 	if err != nil {
 		return err
 	}
@@ -152,4 +177,22 @@ func (p *Project) copyFile(src string, dst string) error {
 	}
 
 	return dstFile.Chmod(stat.Mode())
+}
+
+// getExtraModEntries returns the go.mod entries for the extras
+func (p *Project) getExtraModEntries() []string {
+	var entries []string
+	for _, extra := range p.Extras {
+		entries = append(entries, extra.ModEntries()...)
+	}
+	return entries
+}
+
+// getExtraGitIgnoreEntries returns the .gitignore entries for the extras
+func (p *Project) getExtraGitIgnoreEntries() []string {
+	var entries []string
+	for _, extra := range p.Extras {
+		entries = append(entries, extra.GitIgnoreEntries()...)
+	}
+	return entries
 }

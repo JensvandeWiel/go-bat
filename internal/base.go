@@ -28,6 +28,10 @@ func (p *Project) GenerateBase() error {
 	if err != nil {
 		return err
 	}
+	err = p.writeStringTemplateToFile(".gitignore", base.GitIgnoreTmpl, p)
+	if err != nil {
+		return err
+	}
 
 	p.logger.Debug("Generated base project")
 

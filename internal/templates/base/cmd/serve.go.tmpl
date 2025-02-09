@@ -5,8 +5,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"{{ .PackageName }}/controllers"
-	"log/slog"
+	"log/slog"{{ if isExtraEnabled "inertia-react" }}
+	"github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4/middleware"
+    "github.com/valkey-io/valkey-go"
+    "{{ .PackageName }}/frontend"
+    "strings"{{ end }}
 )
+
+{{ if isExtraEnabled "inertia-react" }}
+var (
+	ignoreList = []string{"api", "swagger"}
+)
+{{ end }}
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
@@ -34,12 +45,60 @@ func Serve(cmd *cobra.Command, args []string) error {
 	f := parseOutputType(viper.GetString("CONSOLE_FORMAT"))
 	logger := bat.NewLogger(f, &slog.HandlerOptions{Level: ll}, false)
 
-	b, err := bat.NewBat(logger)
+	{{ if isExtraEnabled "inertia-react" }}
+    vkConnStr := viper.GetString("CACHE_HOST") + ":" + viper.GetString("CACHE_PORT")
+	logger.Info("Connecting to valkey", slog.String("connection_string", vkConnStr))
+
+	vCli, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{vkConnStr}})
+	if err != nil {
+		logger.Error("Failed to connect to valkey", slog.String("error", err.Error()))
+		return err
+	}
+
+	sExt, err := bat.NewSessionExtension()
 	if err != nil {
 		return err
 	}
 
+	fExt, err := bat.NewFlashExtension()
+	if err != nil {
+		return err
+	}
+
+	iExt, err := bat.NewInertiaExtension(frontend.DistDirFS, frontend.Manifest, true)
+	if err != nil {
+		return err
+	}
+	b, err := bat.NewBat(logger, bat.NewValkeyExtension(vCli),
+		sExt,
+		iExt,
+		fExt)
+	if err != nil {
+		return err
+	}
+
+	// Add CSRF protection
+	b.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "header:X-CSRF-TOKEN",
+		Skipper: func(c echo.Context) bool {
+			// Skip the CSRF if the path is in the ignore list
+			for _, ignorePath := range ignoreList {
+				if strings.Contains(c.Request().RequestURI, ignorePath) {
+					return true
+				}
+			}
+			return false
+		},
+	}))
+
+	err = b.RegisterControllers(&controllers.MainController{}, &controllers.InertiaController{})
+	{{ else }}
+	b, err := bat.NewBat(logger)
+    if err != nil {
+    	return err
+    }
 	err = b.RegisterControllers(&controllers.MainController{})
+	{{ end }}
 	if err != nil {
 		return err
 	}

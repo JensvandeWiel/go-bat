@@ -1,9 +1,11 @@
 package internal
 
 import (
+	"embed"
 	"errors"
 	"github.com/JensvandeWiel/go-bat/pkg"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -43,7 +45,7 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		modEntries := ""
 		for _, extra := range p.Extras {
 			for _, entry := range extra.ModEntries() {
-				modEntries += entry + "\n"
+				modEntries += entry + "\n\t"
 			}
 		}
 
@@ -63,6 +65,24 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return gitIgnoreEntries
 	}
 
+	funcMap["getExtraPersistentFlags"] = func() string {
+		flags := ""
+		for _, extra := range p.Extras {
+			for _, entry := range extra.GetExtraPersistentFlags() {
+				flags += entry + "\n\t"
+			}
+		}
+		return flags
+	}
+
+	funcMap["isExtraEnabled"] = func(extra string) bool {
+		for _, e := range p.Extras {
+			if e.ExtraType().String() == extra {
+				return true
+			}
+		}
+		return false
+	}
 	return p, nil
 }
 
@@ -70,6 +90,13 @@ func (p *Project) Create() error {
 	err := p.GenerateBase()
 	if err != nil {
 		return err
+	}
+
+	for _, extra := range p.Extras {
+		err = extra.Generate(p)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Copy tempdir to project dir
@@ -199,4 +226,33 @@ func (p *Project) getExtraGitIgnoreEntries() []string {
 		entries = append(entries, extra.GitIgnoreEntries()...)
 	}
 	return entries
+}
+
+func (p *Project) copyEmbeddedFiles(efs embed.FS, srcDir, destDir string, renameFunc func(string) string) error {
+	return fs.WalkDir(efs, srcDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+
+		// Apply the rename function to the base name of the file
+		baseName := filepath.Base(relPath)
+		newBaseName := renameFunc(baseName)
+		destPath := filepath.Join(p.tempDir, destDir, filepath.Dir(relPath), newBaseName)
+
+		if d.IsDir() {
+			return os.MkdirAll(destPath, os.ModePerm)
+		}
+
+		data, err := efs.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile(destPath, data, os.ModePerm)
+	})
 }

@@ -62,6 +62,8 @@ func init() {
 	viper.BindPFlag("SERVE_PORT", rootCmd.PersistentFlags().Lookup("SERVE_PORT"))
 	rootCmd.PersistentFlags().String("SERVE_HOST", "localhost", "The host to serve the application on")
 	viper.BindPFlag("SERVE_HOST", rootCmd.PersistentFlags().Lookup("SERVE_HOST"))
+
+	{{ getExtraPersistentFlags }}
 }
 
 func parseLogLevel(logLevel string) slog.Level {

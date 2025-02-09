@@ -47,3 +47,13 @@ func NewBat(logger *Logger, extensions ...Extension) (*Bat, error) {
 
 	return bat, nil
 }
+
+func (b *Bat) Start(addr string) error {
+	b.Logger.Info("Starting server", slog.String("address", addr))
+	err := b.Echo.Start(addr)
+	if err != nil {
+		b.Logger.Error("Failed to start server", slog.String("error", err.Error()))
+		return err
+	}
+	return nil
+}

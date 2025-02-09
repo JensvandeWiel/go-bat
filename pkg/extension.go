@@ -15,7 +15,7 @@ var (
 	CyclicDependencyError    = errors.New("cyclic extension dependency detected")
 )
 
-func (b *Bat) RegisterExtensions(extensions ...Extension) error {
+func (b *Bat) registerExtensions(extensions ...Extension) error {
 	order, err := b.resolveLoadOrder(extensions)
 	if err != nil {
 		return err

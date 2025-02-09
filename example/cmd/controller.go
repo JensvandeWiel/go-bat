@@ -3,7 +3,7 @@ package cmd
 import (
 	bat "github.com/JensvandeWiel/go-bat/pkg"
 	"github.com/labstack/echo/v4"
-	"github.com/romsar/gonertia"
+	"github.com/romsar/gonertia/v2"
 )
 
 type MainController struct {

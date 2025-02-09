@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/romsar/gonertia"
+	"github.com/romsar/gonertia/v2"
 	"html/template"
 	"io/fs"
 	"log/slog"

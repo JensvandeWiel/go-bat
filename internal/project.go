@@ -27,8 +27,19 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return nil, err
 	}
 
+	p := &Project{
+		ProjectName: projectName,
+		PackageName: packageName,
+		Extras:      extras,
+		WorkDir:     workDir,
+		tempDir:     tempDir,
+		logger:      logger,
+		funcMap:     make(template.FuncMap),
+		Force:       force,
+	}
+
 	funcMap := make(template.FuncMap)
-	funcMap["getExtraModEntries"] = func(p *Project) string {
+	funcMap["getExtraModEntries"] = func() string {
 		modEntries := ""
 		for _, extra := range p.Extras {
 			for _, entry := range extra.ModEntries() {
@@ -39,7 +50,9 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return modEntries
 	}
 
-	funcMap["getExtraGitIgnoreEntries"] = func(p *Project) string {
+	p.funcMap = funcMap
+
+	funcMap["getExtraGitIgnoreEntries"] = func() string {
 		gitIgnoreEntries := ""
 		for _, extra := range p.Extras {
 			for _, entry := range extra.GitIgnoreEntries() {
@@ -50,16 +63,7 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return gitIgnoreEntries
 	}
 
-	return &Project{
-		ProjectName: projectName,
-		PackageName: packageName,
-		Extras:      extras,
-		WorkDir:     workDir,
-		tempDir:     tempDir,
-		logger:      logger,
-		funcMap:     make(template.FuncMap),
-		Force:       force,
-	}, nil
+	return p, nil
 }
 
 func (p *Project) Create() error {

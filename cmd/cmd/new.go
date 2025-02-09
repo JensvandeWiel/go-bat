@@ -34,7 +34,7 @@ func RunNew(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	p, err := internal.NewProject(projectName, projectName, workDir, force, logger, internal.ParseExtras(extras...)...)
+	p, err := internal.NewProject(projectName, projectName, workDir, force, logger, internal.ParseExtras(extras)...)
 	if err != nil {
 		return err
 	}

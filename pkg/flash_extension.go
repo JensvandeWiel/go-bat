@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
-	"github.com/romsar/gonertia"
+	"github.com/romsar/gonertia/v2"
 	"github.com/valkey-io/valkey-go"
 	"log/slog"
 	"reflect"

@@ -21,6 +21,17 @@ type Extra interface {
 
 type ExtraType string
 
+type ExtraTypes []ExtraType
+
+func (e ExtraTypes) HasExtra(extra ExtraType) bool {
+	for _, t := range e {
+		if t == extra {
+			return true
+		}
+	}
+	return false
+}
+
 func (t ExtraType) String() string {
 	return string(t)
 }
@@ -44,8 +55,8 @@ func ParseExtraType(extra string) ExtraType {
 	}
 }
 
-func ParseExtraTypes(extras []string) []ExtraType {
-	var parsedExtras []ExtraType
+func ParseExtraTypes(extras []string) ExtraTypes {
+	var parsedExtras ExtraTypes
 	for _, extra := range extras {
 		parsedExtra := ParseExtraType(extra)
 		if parsedExtra != "" {
@@ -68,7 +79,7 @@ func ParseExtra(extra ExtraType) Extra {
 	}
 }
 
-func ParseExtras(extras []ExtraType) []Extra {
+func ParseExtras(extras ExtraTypes) []Extra {
 	var parsedExtras []Extra
 	for _, extra := range extras {
 		parsedExtra := ParseExtra(extra)

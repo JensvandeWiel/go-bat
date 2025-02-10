@@ -2,6 +2,7 @@ package internal
 
 import (
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/JensvandeWiel/go-bat/pkg"
@@ -13,15 +14,39 @@ import (
 	"text/template"
 )
 
+const ProjectFile = "project.json"
+
 type Project struct {
 	logger      *pkg.Logger
-	WorkDir     string
-	ProjectName string
-	PackageName string
-	Force       bool
-	Extras      []Extra
+	WorkDir     string     `json:"-"`
+	ProjectName string     `json:"project_name"`
+	PackageName string     `json:"package_name"`
+	Force       bool       `json:"-"`
+	Extras      []Extra    `json:"-"`
+	ExtraTypes  ExtraTypes `json:"extras"`
 	funcMap     template.FuncMap
 	tempDir     string
+}
+
+func NewProjectFromConfig(dir string, logger *pkg.Logger) (*Project, error) {
+	logger.Debug("Loading project config", "dir", dir)
+	var p Project
+	file, err := os.ReadFile(path.Join(dir, ProjectFile))
+	if err != nil {
+		logger.Error("Failed to read project config", "error", err)
+		return nil, err
+	}
+
+	err = json.Unmarshal(file, &p)
+	if err != nil {
+		logger.Error("Failed to unmarshal project config", "error", err)
+		return nil, err
+	}
+
+	p.logger = logger
+	p.WorkDir = dir
+	p.tempDir = dir
+	return &p, nil
 }
 
 func NewProject(projectName, packageName, workDir string, force bool, logger *pkg.Logger, extras ...Extra) (*Project, error) {
@@ -30,10 +55,16 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		return nil, err
 	}
 
+	extraTypes := make([]ExtraType, 0, len(extras))
+	for _, extra := range extras {
+		extraTypes = append(extraTypes, extra.ExtraType())
+	}
+
 	p := &Project{
 		ProjectName: projectName,
 		PackageName: packageName,
 		Extras:      extras,
+		ExtraTypes:  extraTypes,
 		WorkDir:     workDir,
 		tempDir:     tempDir,
 		logger:      logger,
@@ -119,9 +150,31 @@ func (p *Project) Create() error {
 		return err
 	}
 
+	err = p.SaveConfig()
+	if err != nil {
+		return err
+	}
+
 	// Copy tempdir to project dir
 	err = p.moveToProjectDir()
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Project) SaveConfig() error {
+	p.logger.Debug("Saving project config")
+	marshalledJson, err := json.Marshal(p)
+	if err != nil {
+		p.logger.Error("Failed to marshal project config", "error", err)
+		return err
+	}
+
+	err = os.WriteFile(path.Join(p.tempDir, ProjectFile), marshalledJson, os.ModePerm)
+	if err != nil {
+		p.logger.Error("Failed to write project config", "error", err)
 		return err
 	}
 

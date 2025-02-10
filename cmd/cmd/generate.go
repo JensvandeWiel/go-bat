@@ -12,6 +12,7 @@ import (
 )
 
 var dir string
+var extra bool
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
@@ -20,13 +21,19 @@ var generateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := pkg.NewLogger(pkg.LoggerOutputTypeHuman, &slog.HandlerOptions{Level: slog.LevelDebug}, false)
-		gen, err := internal.ParseGenerator(args[0], logger, dir)
+
+		project, err := internal.NewProjectFromConfig(dir, logger)
+		if err != nil {
+			return err
+		}
+
+		gen, err := internal.ParseGenerator(args[0], project)
 		if err != nil {
 			return err
 		}
 
 		logger.Info("Generating", "item", args[0], "name", args[1])
-		err = gen.Generate(args[1])
+		err = gen.Generate(args[1], extra)
 		if err != nil {
 			return err
 		}
@@ -49,4 +56,5 @@ func init() {
 	// is called directly, e.g.:
 	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	generateCmd.Flags().StringVar(&dir, "dir", "", "The directory of the project, defaults to \".\"")
+	generateCmd.Flags().BoolVar(&extra, "extra", false, "Generate extra files for the model like tests etc.")
 }

@@ -105,6 +105,11 @@ func (p *Project) Create() error {
 		}
 	}
 
+	err = p.GenerateComposerFile()
+	if err != nil {
+		return err
+	}
+
 	// Copy tempdir to project dir
 	err = p.moveToProjectDir()
 	if err != nil {
@@ -275,5 +280,31 @@ func (p *Project) checkExtraIncompatibilities() error {
 			}
 		}
 	}
+	return nil
+}
+
+func (p *Project) GenerateComposerFile() error {
+	file := "services:\n"
+	for _, extra := range p.Extras {
+		for _, service := range extra.ComposerServices() {
+			file += service + "\n"
+		}
+	}
+	file += "volumes:\n"
+	for _, extra := range p.Extras {
+		for _, volume := range extra.ComposerVolumes() {
+			file += volume + "\n"
+		}
+	}
+
+	if file == "services:\nvolumes:\n" {
+		return nil
+	}
+
+	err := os.WriteFile(path.Join(p.tempDir, "docker-compose.yml"), []byte(file), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

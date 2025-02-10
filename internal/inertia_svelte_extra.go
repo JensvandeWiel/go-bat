@@ -59,3 +59,17 @@ func (i *InertiaSvelteExtra) ExtraType() ExtraType {
 func (i *InertiaSvelteExtra) DisallowedExtraTypes() []ExtraType {
 	return []ExtraType{InertiaReact}
 }
+
+func (i *InertiaSvelteExtra) ComposerServices() []string {
+	return []string{`  valkey:
+    image: valkey/valkey:8
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+`}
+}
+
+func (i *InertiaSvelteExtra) ComposerVolumes() []string {
+	return []string{`  valkey_data:`}
+}

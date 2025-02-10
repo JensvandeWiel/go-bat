@@ -21,7 +21,7 @@ var packageName string
 
 func init() {
 	rootCmd.AddCommand(newCmd)
-	newCmd.Flags().StringArrayVar(&extras, "extra", []string{}, "Add extra features to the project choice of: inertia-react")
+	newCmd.Flags().StringArrayVar(&extras, "extra", []string{}, "Add extra features to the project choice of: inertia-react, inertia-svelte")
 	newCmd.Flags().StringVar(&packageName, "package-name", "", "The name of the package, defaults to the project name")
 	newCmd.Flags().BoolVar(&force, "force", false, "Force the creation of the project even if the directory is not empty")
 }

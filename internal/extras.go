@@ -13,6 +13,10 @@ type Extra interface {
 	ExtraType() ExtraType
 	// DisallowedExtraTypes returns the extra types that are not allowed with this extra
 	DisallowedExtraTypes() []ExtraType
+	// ComposerServices returns the services that need to be added to the composer file
+	ComposerServices() []string
+	// ComposerVolumes returns the volumes that need to be added to the composer file
+	ComposerVolumes() []string
 }
 
 type ExtraType string

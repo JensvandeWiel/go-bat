@@ -84,6 +84,15 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 		}
 		return false
 	}
+
+	funcMap["hasComposeFile"] = func() bool {
+		for _, extra := range p.Extras {
+			if len(extra.ComposerServices()) > 0 || len(extra.ComposerVolumes()) > 0 {
+				return true
+			}
+		}
+		return false
+	}
 	return p, nil
 }
 

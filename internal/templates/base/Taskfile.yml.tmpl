@@ -3,20 +3,34 @@ tasks:
   installdeps:
     desc: Install required tools
     cmds:
-      - go install github.com/air-verse/air@latest
-      - go mod tidy
-      - cd frontend && bun install
+      - go install github.com/air-verse/air@latest{{ if or (isExtraEnabled "database-pgsql")}}
+      - go install github.com/pressly/goose/v3/cmd/goose@latest{{ end }}
+      - go mod tidy{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
+      - cd frontend && bun install{{ end }}
   {{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
   build:frontend:
     cmds:
-      - cd frontend && bun run build{{ end }}
+      - cd frontend && bun run build{{ end }}{{ if or (isExtraEnabled "database-pgsql")}}
+  goose:create:*:
+    vars:
+      name: '{{ "{{index .MATCH 0}}" }}'
+    desc: Create a goose migration
+    cmds:
+      - goose create {{"{{ .name }}"}} sql --dir database/migrations
+  migrate:*:
+    vars:
+      direction: '{{ "{{index .MATCH 0}}" }}'
+    desc: Run goose
+    cmds:
+      - go run . migrate {{"{{ .direction }}"}}{{ end }}
   dev:
     env:
       ENV: dev
       CONSOLE_FORMAT: color
     cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
       - task: build:frontend{{ end }}
-      - air -c .air.toml
+      - air -c .air.toml{{ if hasComposeFile}}
+      - docker compose -f docker-compose.yml up -d{{ end }}
   build:
     cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
       - task: build:frontend{{ end }}

@@ -10,7 +10,27 @@ func NewDatabasePgSQL() *DatabasePgSQLExtra {
 }
 
 func (i *DatabasePgSQLExtra) Generate(project *Project) error {
-	err := project.writeStringTemplateToFile("database/connect.go", database_pgsql_extra.DatabaseConnectTemplate, i)
+	err := project.writeStringTemplateToFile("database/connect.go", database_pgsql_extra.DatabaseConnectTemplate, project)
+	if err != nil {
+		return err
+	}
+
+	err = project.writeStringTemplateToFile("database/migrations/migrations.go", database_pgsql_extra.DatabaseMigrationsTemplate, project)
+	if err != nil {
+		return err
+	}
+
+	err = project.writeStringTemplateToFile("database/migrations/20250210123935_placeholder.sql", database_pgsql_extra.DatabaseMigrationsPlaceholderTemplate, project)
+	if err != nil {
+		return err
+	}
+
+	err = project.writeStringTemplateToFile("cmd/migrate.go", database_pgsql_extra.MigrateTemplate, project)
+	if err != nil {
+		return err
+	}
+
+	err = project.createDirectories([]string{"database/models"})
 	if err != nil {
 		return err
 	}
@@ -22,6 +42,7 @@ func (i *DatabasePgSQLExtra) ModEntries() []string {
 	return []string{
 		"github.com/jmoiron/sqlx v1.4.0",
 		"github.com/lib/pq v1.10.9",
+		"github.com/pressly/goose/v3 v3.24.1",
 	}
 }
 

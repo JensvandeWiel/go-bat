@@ -166,7 +166,7 @@ func (p *Project) Create() error {
 
 func (p *Project) SaveConfig() error {
 	p.logger.Debug("Saving project config")
-	marshalledJson, err := json.Marshal(p)
+	marshalledJson, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		p.logger.Error("Failed to marshal project config", "error", err)
 		return err

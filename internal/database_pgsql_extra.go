@@ -30,7 +30,12 @@ func (i *DatabasePgSQLExtra) Generate(project *Project) error {
 		return err
 	}
 
-	err = project.createDirectories([]string{"database/models"})
+	err = project.createDirectories([]string{"database/models", "test_helpers"})
+	if err != nil {
+		return err
+	}
+
+	err = project.writeStringTemplateToFile("test_helpers/setup_db.go", database_pgsql_extra.TestHelpersSetupDbTemplate, project)
 	if err != nil {
 		return err
 	}
@@ -43,6 +48,8 @@ func (i *DatabasePgSQLExtra) ModEntries() []string {
 		"github.com/jmoiron/sqlx v1.4.0",
 		"github.com/lib/pq v1.10.9",
 		"github.com/pressly/goose/v3 v3.24.1",
+		"github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0",
+		"github.com/testcontainers/testcontainers-go v0.35.0",
 	}
 }
 

@@ -1,0 +1,49 @@
+package stores
+
+import (
+	"{{ .PackageName }}/database/models"
+	"{{ .PackageName }}/test_helpers"
+	"context"
+	"errors"
+	"testing"
+)
+
+func TestDatabase{{ .modelName }}Store_Get{{ .modelName }}ById(t *testing.T) {
+	db, cleanup, err := test_helpers.SetupDatabase()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+
+	t.Run("{{ .modelName }} not found", func(t *testing.T) {
+		store := NewDatabase{{ .modelName }}Store(db)
+		{{ .modelNameLow }}, err := store.Get{{ .modelName }}ById(context.Background(), 1)
+		if {{ .modelNameLow }} != nil {
+			t.Errorf("Expected nil, got %v", {{ .modelNameLow }})
+		}
+		if !errors.Is(err, Error{{ .modelName }}NotFound) {
+			t.Errorf("Expected %v, got %v", Error{{ .modelName }}NotFound, err)
+		}
+	})
+
+	t.Run("{{ .modelName }} found", func(t *testing.T) {
+		store := NewDatabase{{ .modelName }}Store(db)
+		{{ .modelNameLow }} := &models.{{ .modelName }}{
+			ID: 1,
+		}
+		_, err := db.NamedExec("INSERT INTO {{ .pluralLowName }} (id) VALUES (:id)", {{ .modelNameLow }})
+		if err != nil {
+			t.Fatal(err)
+		}
+		{{ .modelNameLow }}, err = store.Get{{ .modelName }}ById(context.Background(), 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if {{ .modelNameLow }} == nil {
+			t.Errorf("Expected {{ .modelNameLow }}, got nil")
+		}
+		if {{ .modelNameLow }}.ID != 1 {
+			t.Errorf("Expected 1, got %v", {{ .modelNameLow }}.ID)
+		}
+	})
+}

@@ -13,3 +13,6 @@ var DatabaseMigrationsTemplate string
 
 //go:embed cmd/migrate.go.tmpl
 var MigrateTemplate string
+
+//go:embed test_helpers/setup_db.go.tmpl
+var TestHelpersSetupDbTemplate string

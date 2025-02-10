@@ -4,7 +4,8 @@ import (
 	bat "github.com/JensvandeWiel/go-bat/pkg"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"{{ .PackageName }}/controllers"
+	"{{ .PackageName }}/controllers"{{if isExtraEnabled "database-pgsql" }}
+    "{{ .PackageName }}/database"{{ end }}
 	"log/slog"{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte") }}
 	"github.com/labstack/echo/v4"
     "github.com/labstack/echo/v4/middleware"
@@ -43,7 +44,12 @@ func init() {
 func Serve(cmd *cobra.Command, args []string) error {
 	ll := parseLogLevel(viper.GetString("LEVEL"))
 	f := parseOutputType(viper.GetString("CONSOLE_FORMAT"))
-	logger := bat.NewLogger(f, &slog.HandlerOptions{Level: ll}, false)
+	logger := bat.NewLogger(f, &slog.HandlerOptions{Level: ll}, false){{if isExtraEnabled "database-pgsql" }}
+	db, err := database.ConnectDB()
+    if err != nil {
+    	return err
+    }
+	{{end}}
 
 	{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte") }}
     vkConnStr := viper.GetString("CACHE_HOST") + ":" + viper.GetString("CACHE_PORT")
@@ -72,7 +78,8 @@ func Serve(cmd *cobra.Command, args []string) error {
 	b, err := bat.NewBat(logger, bat.NewValkeyExtension(vCli),
 		sExt,
 		iExt,
-		fExt)
+		fExt{{ if isExtraEnabled "database-pgsql" }},
+		bat.NewDatabaseExtension(db){{ end }})
 	if err != nil {
 		return err
 	}
@@ -93,7 +100,7 @@ func Serve(cmd *cobra.Command, args []string) error {
 
 	err = b.RegisterControllers(&controllers.MainController{}, &controllers.InertiaController{})
 	{{ else }}
-	b, err := bat.NewBat(logger)
+	b, err := bat.NewBat(logger{{ if isExtraEnabled "database-pgsql" }}, bat.NewDatabaseExtension(db){{ end }})
     if err != nil {
     	return err
     }

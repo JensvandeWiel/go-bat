@@ -105,7 +105,7 @@ func (p *Project) Create() error {
 		}
 	}
 
-	err = p.GenerateComposerFile()
+	err = p.generateComposerFile()
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (p *Project) checkExtraIncompatibilities() error {
 	return nil
 }
 
-func (p *Project) GenerateComposerFile() error {
+func (p *Project) generateComposerFile() error {
 	file := "services:\n"
 	for _, extra := range p.Extras {
 		for _, service := range extra.ComposerServices() {

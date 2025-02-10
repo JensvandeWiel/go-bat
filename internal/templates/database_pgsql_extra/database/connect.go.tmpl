@@ -1,0 +1,23 @@
+package database
+
+import (
+	"fmt"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
+)
+
+func ConnectDB() (*sqlx.DB, error) {
+	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
+		viper.GetString("DB_HOST"),
+		viper.GetInt("DB_PORT"),
+		viper.GetString("DB_USER"),
+		viper.GetString("DB_PASS"),
+		viper.GetString("DB_NAME"))
+
+	conn, err := sqlx.Connect("postgres", dsn)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}

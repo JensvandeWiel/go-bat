@@ -28,6 +28,7 @@ func (t ExtraType) String() string {
 const (
 	InertiaReact  ExtraType = "inertia-react"
 	InertiaSvelte ExtraType = "inertia-svelte"
+	DatabasePgSQL ExtraType = "database-pgsql"
 )
 
 func ParseExtraType(extra string) ExtraType {
@@ -36,6 +37,8 @@ func ParseExtraType(extra string) ExtraType {
 		return InertiaReact
 	case "inertia-svelte":
 		return InertiaSvelte
+	case "database-pgsql":
+		return DatabasePgSQL
 	default:
 		return ""
 	}
@@ -58,6 +61,8 @@ func ParseExtra(extra ExtraType) Extra {
 		return &InertiaReactExtra{}
 	case InertiaSvelte:
 		return &InertiaSvelteExtra{}
+	case DatabasePgSQL:
+		return &DatabasePgSQLExtra{}
 	default:
 		return nil
 	}

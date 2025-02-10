@@ -71,3 +71,11 @@ func (i *InertiaReactExtra) ComposerServices() []string {
 func (i *InertiaReactExtra) ComposerVolumes() []string {
 	return []string{`  valkey_data:`}
 }
+
+func (i *InertiaReactExtra) RequiredExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}
+
+func (i *InertiaReactExtra) OneOfExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}

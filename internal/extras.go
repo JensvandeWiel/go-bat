@@ -17,6 +17,10 @@ type Extra interface {
 	ComposerServices() []string
 	// ComposerVolumes returns the volumes that need to be added to the composer file
 	ComposerVolumes() []string
+	// RequiredExtraTypes returns the extra types that are required with this extra
+	RequiredExtraTypes() ExtraTypes
+	// OneOfExtraTypes returns the extra type where one of them is required
+	OneOfExtraTypes() ExtraTypes
 }
 
 type ExtraType string
@@ -40,6 +44,7 @@ const (
 	InertiaReact  ExtraType = "inertia-react"
 	InertiaSvelte ExtraType = "inertia-svelte"
 	DatabasePgSQL ExtraType = "database-pgsql"
+	FrontendAuth  ExtraType = "frontend-auth"
 )
 
 func ParseExtraType(extra string) ExtraType {
@@ -50,6 +55,8 @@ func ParseExtraType(extra string) ExtraType {
 		return InertiaSvelte
 	case "database-pgsql":
 		return DatabasePgSQL
+	case "frontend-auth":
+		return FrontendAuth
 	default:
 		return ""
 	}
@@ -74,6 +81,8 @@ func ParseExtra(extra ExtraType) Extra {
 		return &InertiaSvelteExtra{}
 	case DatabasePgSQL:
 		return &DatabasePgSQLExtra{}
+	case FrontendAuth:
+		return &FrontendAuthServiceExtra{}
 	default:
 		return nil
 	}

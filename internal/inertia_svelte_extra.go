@@ -73,3 +73,11 @@ func (i *InertiaSvelteExtra) ComposerServices() []string {
 func (i *InertiaSvelteExtra) ComposerVolumes() []string {
 	return []string{`  valkey_data:`}
 }
+
+func (i *InertiaSvelteExtra) RequiredExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}
+
+func (i *InertiaSvelteExtra) OneOfExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}

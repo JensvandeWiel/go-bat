@@ -1,0 +1,35 @@
+package stores
+
+import (
+	"{{ .PackageName }}/database/models"
+	"github.com/stretchr/testify/mock"
+	"context"
+)
+
+type MockUsersStore struct {
+	mock.Mock
+}
+
+func (m *MockUsersStore) GetUserById(ctx context.Context, id int32) (*models.User, error) {
+	args := m.Called(id)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockUsersStore) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	args := m.Called(email)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockUsersStore) CreateUser(ctx context.Context, user *models.User) (int64, error) {
+	args := m.Called(user)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockUsersStore) DeleteUser(ctx context.Context, id int32) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func NewMockUsersStore() *MockUsersStore {
+	return &MockUsersStore{}
+}

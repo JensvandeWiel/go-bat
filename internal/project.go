@@ -382,6 +382,41 @@ func (p *Project) checkExtraIncompatibilities() error {
 			}
 		}
 	}
+
+	// Check if the required extras are present
+	for _, extra := range p.Extras {
+		for _, required := range extra.RequiredExtraTypes() {
+			found := false
+			for _, otherExtra := range p.Extras {
+				if otherExtra.ExtraType() == required {
+					found = true
+					break
+				}
+			}
+			if !found {
+				p.logger.Error("Required extra not found", "extra", extra.ExtraType(), "required", required)
+				return fmt.Errorf("extra %s requires extra %s", extra.ExtraType(), required)
+			}
+		}
+	}
+
+	// Check if one of the required extras is present
+	for _, extra := range p.Extras {
+		found := false
+		for _, oneOf := range extra.OneOfExtraTypes() {
+			for _, otherExtra := range p.Extras {
+				if otherExtra.ExtraType() == oneOf {
+					found = true
+					break
+				}
+			}
+		}
+		if !found && len(extra.OneOfExtraTypes()) > 0 {
+			p.logger.Error("One of the required extras not found", "extra", extra.ExtraType(), "required", extra.OneOfExtraTypes())
+			return fmt.Errorf("extra %s requires one of the extras %v", extra.ExtraType(), extra.OneOfExtraTypes())
+		}
+	}
+
 	p.logger.Debug("Checked extra incompatibilities")
 	return nil
 }

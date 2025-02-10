@@ -1,0 +1,50 @@
+package middleware
+
+import (
+	bat "github.com/JensvandeWiel/go-bat/pkg"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
+)
+
+const DefaultAuthKey = "auth"
+const SessionUserKey = "user_id"
+
+// GetSession returns the session from the echo context
+func GetSession(c echo.Context) (*sessions.Session, error) {
+	return session.Get(bat.DefaultSessionName, c)
+}
+
+// ProtectFrontendRoute ensures that the user is authenticated before proceeding (don't use for api endpoints)
+func ProtectFrontendRoute(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		sess, err := session.Get(bat.DefaultSessionName, c)
+		if err != nil {
+			return err
+		}
+
+		if sess.Values[DefaultAuthKey] == nil || sess.Values[DefaultAuthKey].(bool) != true {
+			return c.Redirect(303, "/login")
+		}
+
+		return next(c)
+	}
+}
+
+func NotAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		sess, err := session.Get(bat.DefaultSessionName, c)
+		if err != nil {
+			return err
+		}
+
+		// Not authenticated
+		if val, ok := sess.Values[DefaultAuthKey]; !ok || val == false || val == nil {
+			return next(c)
+		}
+
+		// Authenticated
+		return c.Redirect(403, "/")
+	}
+}

@@ -96,3 +96,11 @@ func (i *DatabasePgSQLExtra) ComposerServices() []string {
 func (i *DatabasePgSQLExtra) ComposerVolumes() []string {
 	return []string{`  postgres_data:`}
 }
+
+func (i *DatabasePgSQLExtra) RequiredExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}
+
+func (i *DatabasePgSQLExtra) OneOfExtraTypes() ExtraTypes {
+	return ExtraTypes{}
+}

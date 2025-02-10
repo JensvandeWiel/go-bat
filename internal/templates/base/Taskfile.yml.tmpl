@@ -1,0 +1,23 @@
+version: "3"
+tasks:
+  installdeps:
+    desc: Install required tools
+    cmds:
+      - go install github.com/air-verse/air@latest
+      - go mod tidy
+      - cd frontend && bun install
+  {{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
+  build:frontend:
+    cmds:
+      - cd frontend && bun run build{{ end }}
+  dev:
+    env:
+      ENV: dev
+      CONSOLE_FORMAT: color
+    cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
+      - task: build:frontend{{ end }}
+      - air -c .air.toml
+  build:
+    cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
+      - task: build:frontend{{ end }}
+      - go build -tags release -o bin/{{ .ProjectName }} .

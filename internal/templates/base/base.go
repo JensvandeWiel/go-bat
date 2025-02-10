@@ -22,3 +22,9 @@ var MainTmpl string
 
 //go:embed .gitignore.tmpl
 var GitIgnoreTmpl string
+
+//go:embed .air.toml.tmpl
+var AirTmpl string
+
+//go:embed Taskfile.yml.tmpl
+var TaskfileTmpl string

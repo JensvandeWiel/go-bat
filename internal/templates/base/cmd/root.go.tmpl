@@ -56,7 +56,7 @@ func init() {
 	viper.BindPFlag("CONSOLE_FORMAT", rootCmd.PersistentFlags().Lookup("CONSOLE_FORMAT"))
 	rootCmd.PersistentFlags().String("LEVEL", "INFO", "the log level to use (DEBUG, INFO, WARN, ERROR)")
 	viper.BindPFlag("LEVEL", rootCmd.PersistentFlags().Lookup("LEVEL"))
-	rootCmd.PersistentFlags().String("ENV", "dev", "the environment to run in")
+	rootCmd.PersistentFlags().String("ENV", "prod", "the environment to run in")
 	viper.BindPFlag("ENV", rootCmd.PersistentFlags().Lookup("ENV"))
 	rootCmd.PersistentFlags().String("SERVE_PORT", "8080", "The port to serve the application on")
 	viper.BindPFlag("SERVE_PORT", rootCmd.PersistentFlags().Lookup("SERVE_PORT"))

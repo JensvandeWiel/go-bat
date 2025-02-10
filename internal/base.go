@@ -33,6 +33,16 @@ func (p *Project) GenerateBase() error {
 		return err
 	}
 
+	err = p.writeStringTemplateToFile(".air.toml", base.AirTmpl, p)
+	if err != nil {
+		return err
+	}
+
+	err = p.writeStringTemplateToFile("Taskfile.yml", base.TaskfileTmpl, p)
+	if err != nil {
+		return err
+	}
+
 	p.logger.Debug("Generated base project")
 
 	return nil

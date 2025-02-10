@@ -184,9 +184,12 @@ func (p *Project) SaveConfig() error {
 // createDirectories creates directories in the project
 func (p *Project) createDirectories(dirs []string) error {
 	for _, dir := range dirs {
+		p.logger.Debug("Creating directory", "path", dir)
 		if err := os.MkdirAll(filepath.Join(p.tempDir, dir), 0755); err != nil {
+			p.logger.Error("Failed to create directory", "path", dir, "error", err)
 			return err
 		}
+		p.logger.Debug("Directory created", "path", dir)
 	}
 	return nil
 }
@@ -219,7 +222,7 @@ func (p *Project) writeStringTemplateToFile(filePath string, tmplString string, 
 	if err != nil {
 		return err
 	}
-
+	p.logger.Debug("Template written to file", "path", filePath)
 	return nil
 }
 
@@ -258,6 +261,7 @@ func (p *Project) copyDir(src string, dst string) error {
 
 // copyFile copies a file from src to dst
 func (p *Project) copyFile(src string, dst string) error {
+	p.logger.Debug("Copying file", "src", src, "dst", dst)
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return err
@@ -280,36 +284,53 @@ func (p *Project) copyFile(src string, dst string) error {
 		return err
 	}
 
-	return dstFile.Chmod(stat.Mode())
+	err = dstFile.Chmod(stat.Mode())
+	if err != nil {
+		return err
+	}
+
+	p.logger.Debug("File copied", "src", src, "dst", dst)
+	return nil
 }
 
 // getExtraModEntries returns the go.mod entries for the extras
 func (p *Project) getExtraModEntries() []string {
+	p.logger.Debug("Getting all extra mod entries")
 	var entries []string
 	for _, extra := range p.Extras {
+		p.logger.Debug("Getting extra mod entries", "extra", extra.ExtraType())
 		entries = append(entries, extra.ModEntries()...)
+		p.logger.Debug("Got extra mod entries", "extra", extra.ExtraType())
 	}
+	p.logger.Debug("Got all extra mod entries", "entries", entries)
 	return entries
 }
 
 // getExtraGitIgnoreEntries returns the .gitignore entries for the extras
 func (p *Project) getExtraGitIgnoreEntries() []string {
+	p.logger.Debug("Getting all extra gitignore entries")
 	var entries []string
 	for _, extra := range p.Extras {
+		p.logger.Debug("Getting extra gitignore entries", "extra", extra.ExtraType())
 		entries = append(entries, extra.GitIgnoreEntries()...)
+		p.logger.Debug("Got extra gitignore entries", "extra", extra.ExtraType())
 	}
+	p.logger.Debug("Got all extra gitignore entries", "entries", entries)
 	return entries
 }
 
 // copyEmbeddedFiles copies files from the embedded filesystem to the project directory
 func (p *Project) copyEmbeddedFiles(efs embed.FS, srcDir, destDir string, renameFunc func(string) string) error {
-	return fs.WalkDir(efs, srcDir, func(path string, d fs.DirEntry, err error) error {
+	p.logger.Debug("Starting to copy embedded files", "srcDir", srcDir, "destDir", destDir)
+	err := fs.WalkDir(efs, srcDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
+			p.logger.Error("Error walking directory", "path", path, "error", err)
 			return err
 		}
 
 		relPath, err := filepath.Rel(srcDir, path)
 		if err != nil {
+			p.logger.Error("Error getting relative path", "srcDir", srcDir, "path", path, "error", err)
 			return err
 		}
 
@@ -319,20 +340,39 @@ func (p *Project) copyEmbeddedFiles(efs embed.FS, srcDir, destDir string, rename
 		destPath := filepath.Join(p.tempDir, destDir, filepath.Dir(relPath), newBaseName)
 
 		if d.IsDir() {
+			p.logger.Debug("Creating directory", "path", destPath)
 			return os.MkdirAll(destPath, os.ModePerm)
 		}
 
+		p.logger.Debug("Copying file", "src", path, "dest", destPath)
 		data, err := efs.ReadFile(path)
 		if err != nil {
+			p.logger.Error("Error reading file", "path", path, "error", err)
 			return err
 		}
 
-		return os.WriteFile(destPath, data, os.ModePerm)
+		err = os.WriteFile(destPath, data, os.ModePerm)
+		if err != nil {
+			p.logger.Error("Error writing file", "path", destPath, "error", err)
+			return err
+		}
+
+		p.logger.Debug("File copied", "src", path, "dest", destPath)
+		return nil
 	})
+
+	if err != nil {
+		p.logger.Error("Error copying embedded files", "error", err)
+		return err
+	}
+
+	p.logger.Debug("Finished copying embedded files", "srcDir", srcDir, "destDir", destDir)
+	return nil
 }
 
 // checkExtraIncompatibilities checks if the extras are compatible with each other
 func (p *Project) checkExtraIncompatibilities() error {
+	p.logger.Debug("Checking extra incompatibilities")
 	for _, extra := range p.Extras {
 		for _, disallowed := range extra.DisallowedExtraTypes() {
 			for _, otherExtra := range p.Extras {
@@ -342,6 +382,7 @@ func (p *Project) checkExtraIncompatibilities() error {
 			}
 		}
 	}
+	p.logger.Debug("Checked extra incompatibilities")
 	return nil
 }
 

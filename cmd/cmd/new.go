@@ -17,10 +17,12 @@ var newCmd = &cobra.Command{
 
 var extras []string
 var force bool
+var packageName string
 
 func init() {
 	rootCmd.AddCommand(newCmd)
 	newCmd.Flags().StringArrayVar(&extras, "extra", []string{}, "Add extra features to the project choice of: inertia-react")
+	newCmd.Flags().StringVar(&packageName, "package-name", "", "The name of the package, defaults to the project name")
 	newCmd.Flags().BoolVar(&force, "force", false, "Force the creation of the project even if the directory is not empty")
 }
 
@@ -33,8 +35,10 @@ func RunNew(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	p, err := internal.NewProject(projectName, projectName, workDir, force, logger, internal.ParseExtras(internal.ParseExtraTypes(extras))...)
+	if packageName == "" {
+		packageName = projectName
+	}
+	p, err := internal.NewProject(projectName, packageName, workDir, force, logger, internal.ParseExtras(internal.ParseExtraTypes(extras))...)
 	if err != nil {
 		return err
 	}

@@ -11,6 +11,8 @@ type Extra interface {
 	GetExtraPersistentFlags() []string
 	// ExtraType returns the name of the extra
 	ExtraType() ExtraType
+	// DisallowedExtraTypes returns the extra types that are not allowed with this extra
+	DisallowedExtraTypes() []ExtraType
 }
 
 type ExtraType string
@@ -20,13 +22,16 @@ func (t ExtraType) String() string {
 }
 
 const (
-	InertiaReact ExtraType = "inertia-react"
+	InertiaReact  ExtraType = "inertia-react"
+	InertiaSvelte ExtraType = "inertia-svelte"
 )
 
 func ParseExtraType(extra string) ExtraType {
 	switch extra {
 	case "inertia-react":
 		return InertiaReact
+	case "inertia-svelte":
+		return InertiaSvelte
 	default:
 		return ""
 	}
@@ -47,6 +52,8 @@ func ParseExtra(extra ExtraType) Extra {
 	switch extra {
 	case InertiaReact:
 		return &InertiaReactExtra{}
+	case InertiaSvelte:
+		return &InertiaSvelteExtra{}
 	default:
 		return nil
 	}

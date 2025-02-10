@@ -3,6 +3,7 @@ package internal
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"github.com/JensvandeWiel/go-bat/pkg"
 	"io"
 	"io/fs"
@@ -87,7 +88,12 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 }
 
 func (p *Project) Create() error {
-	err := p.GenerateBase()
+	err := p.checkExtraIncompatibilities()
+	if err != nil {
+		return err
+	}
+
+	err = p.GenerateBase()
 	if err != nil {
 		return err
 	}
@@ -228,6 +234,7 @@ func (p *Project) getExtraGitIgnoreEntries() []string {
 	return entries
 }
 
+// copyEmbeddedFiles copies files from the embedded filesystem to the project directory
 func (p *Project) copyEmbeddedFiles(efs embed.FS, srcDir, destDir string, renameFunc func(string) string) error {
 	return fs.WalkDir(efs, srcDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -255,4 +262,18 @@ func (p *Project) copyEmbeddedFiles(efs embed.FS, srcDir, destDir string, rename
 
 		return os.WriteFile(destPath, data, os.ModePerm)
 	})
+}
+
+// checkExtraIncompatibilities checks if the extras are compatible with each other
+func (p *Project) checkExtraIncompatibilities() error {
+	for _, extra := range p.Extras {
+		for _, disallowed := range extra.DisallowedExtraTypes() {
+			for _, otherExtra := range p.Extras {
+				if otherExtra.ExtraType() == disallowed {
+					return fmt.Errorf("extra %s is incompatible with extra %s", extra.ExtraType(), otherExtra.ExtraType())
+				}
+			}
+		}
+	}
+	return nil
 }

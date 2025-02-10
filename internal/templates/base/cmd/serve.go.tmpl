@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"{{ .PackageName }}/controllers"
-	"log/slog"{{ if isExtraEnabled "inertia-react" }}
+	"log/slog"{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte") }}
 	"github.com/labstack/echo/v4"
     "github.com/labstack/echo/v4/middleware"
     "github.com/valkey-io/valkey-go"
@@ -13,7 +13,7 @@ import (
     "strings"{{ end }}
 )
 
-{{ if isExtraEnabled "inertia-react" }}
+{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte") }}
 var (
 	ignoreList = []string{"api", "swagger"}
 )
@@ -45,7 +45,7 @@ func Serve(cmd *cobra.Command, args []string) error {
 	f := parseOutputType(viper.GetString("CONSOLE_FORMAT"))
 	logger := bat.NewLogger(f, &slog.HandlerOptions{Level: ll}, false)
 
-	{{ if isExtraEnabled "inertia-react" }}
+	{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte") }}
     vkConnStr := viper.GetString("CACHE_HOST") + ":" + viper.GetString("CACHE_PORT")
 	logger.Info("Connecting to valkey", slog.String("connection_string", vkConnStr))
 
@@ -65,7 +65,7 @@ func Serve(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	iExt, err := bat.NewInertiaExtension(frontend.DistDirFS, frontend.Manifest, true)
+	{{ if isExtraEnabled "inertia-svelte" }}iExt, err := bat.NewInertiaExtension(frontend.DistDirFS, frontend.Manifest, true, bat.WithRootTemplate(frontend.RootTemplate)){{end}}
 	if err != nil {
 		return err
 	}

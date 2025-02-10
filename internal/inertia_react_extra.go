@@ -21,7 +21,6 @@ func (i *InertiaReactExtra) Generate(project *Project) error {
 		} else if s == "gitignore.tmpl" {
 			return ".gitignore"
 		}
-
 		return s
 	})
 	if err != nil {
@@ -53,4 +52,8 @@ func (i *InertiaReactExtra) GetExtraPersistentFlags() []string {
 
 func (i *InertiaReactExtra) ExtraType() ExtraType {
 	return InertiaReact
+}
+
+func (i *InertiaReactExtra) DisallowedExtraTypes() []ExtraType {
+	return []ExtraType{InertiaSvelte}
 }

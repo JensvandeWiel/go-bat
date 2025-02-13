@@ -70,10 +70,10 @@ func NewSessionExtension(opts ...SessionExtensionOption) (*SessionExtension, err
 // Register registers the session extension
 func (s *SessionExtension) Register(app *Bat) error {
 	s.logger = &Logger{app.Logger.With("module", "session_extension")}
-	valkeyExtension := GetExtension[*ValkeyExtension](app)
-	s.vClient = valkeyExtension.GetClient()
 	var err error
 	if s.sessionStore == nil {
+		valkeyExtension := GetExtension[*ValkeyExtension](app)
+		s.vClient = valkeyExtension.GetClient()
 		s.sessionStore, err = valkeystore.NewValkeyStore(s.vClient)
 		if err != nil {
 			return err

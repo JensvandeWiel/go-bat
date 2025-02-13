@@ -30,7 +30,7 @@ func TestFrontendAuthDefaultService_Login(t *testing.T) {
 	mockStore.On("GetUserByEmail", "test@example.com").Return(mockUser, nil)
 	authService := services.NewFrontendAuthDefaultService(mockStore)
 
-	ctx, _, _ := test_helpers.SetupEchoContext(t, http.MethodPost, test_helpers.SetupLogger())
+	ctx, _, _ := test_helpers.SetupBatTestContext(t, http.MethodPost, test_helpers.SetupLogger())
 	session := test_helpers.SetupSession(ctx)
 
 	loginRequest := requests.LoginRequest{
@@ -48,7 +48,7 @@ func TestFrontendAuthDefaultService_Login(t *testing.T) {
 func TestFrontendAuthDefaultService_IsLoggedIn(t *testing.T) {
 	authService := services.NewFrontendAuthDefaultService(nil)
 
-	ctx, _, _ := test_helpers.SetupEchoContext(t, http.MethodPost, test_helpers.SetupLogger())
+	ctx, _, _ := test_helpers.SetupBatTestContext(t, http.MethodPost, test_helpers.SetupLogger())
 	session := test_helpers.SetupSession(ctx)
 
 	session.Values[middleware.DefaultAuthKey] = true
@@ -67,7 +67,7 @@ func TestFrontendAuthDefaultService_GetUser(t *testing.T) {
 	mockStore.On("GetUserById", int32(1)).Return(mockUser, nil)
 	authService := services.NewFrontendAuthDefaultService(mockStore)
 
-	ctx, _, _ := test_helpers.SetupEchoContext(t, http.MethodPost, test_helpers.SetupLogger())
+	ctx, _, _ := test_helpers.SetupBatTestContext(t, http.MethodPost, test_helpers.SetupLogger())
 	session := test_helpers.SetupSession(ctx)
 
 	session.Values[middleware.SessionUserKey] = mockUser.ID
@@ -84,7 +84,7 @@ func TestFrontendAuthDefaultService_GetUser(t *testing.T) {
 func TestFrontendAuthDefaultService_Logout(t *testing.T) {
 	authService := services.NewFrontendAuthDefaultService(nil)
 
-	ctx, _, _ := test_helpers.SetupEchoContext(t, http.MethodPost, test_helpers.SetupLogger())
+	ctx, _, _ := test_helpers.SetupBatTestContext(t, http.MethodPost, test_helpers.SetupLogger())
 	session := test_helpers.SetupSession(ctx)
 
 	session.Values[middleware.DefaultAuthKey] = true

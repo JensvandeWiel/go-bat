@@ -12,10 +12,15 @@ import (
 	"testing"
 )
 
-type AlterTestEchoFunc func(e *echo.Echo)
+type AlterBatTestFunc func(b *bat.Bat)
 
-func SetupEchoContext(t *testing.T, method string, logger *slog.Logger, alterFuncs ...AlterTestEchoFunc) (echo.Context, *echo.Echo, *httptest.ResponseRecorder) {
-	e := echo.New()
+func SetupBatTestContext(t *testing.T, method string, logger *bat.Logger, alterFuncs ...AlterBatTestFunc) (echo.Context, *bat.Bat, *httptest.ResponseRecorder) {
+	ssExt, err := bat.NewSessionExtension(bat.WithSessionStore(sessions.NewCookieStore([]byte("secret"))))
+	e, err := bat.NewBat(logger, ssExt)
+	if err != nil {
+		t.Fatal("Failed to create bat instance", err.Error())
+	}
+
 	for _, f := range alterFuncs {
 		f(e)
 	}
@@ -33,10 +38,10 @@ func SetupEchoContext(t *testing.T, method string, logger *slog.Logger, alterFun
 	return ctx, e, rec
 }
 
-func SetupLogger() *slog.Logger {
-	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+func SetupLogger() *bat.Logger {
+	return &bat.Logger{slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
-	}))
+	}))}
 }
 
 func SetupSession(ctx echo.Context) *sessions.Session {

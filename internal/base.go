@@ -43,7 +43,7 @@ func (p *Project) GenerateBase() error {
 		return err
 	}
 
-	err = p.writeStringTemplateToFile("test_helpers/echo_context.go", base.TestHelpersEchoContextTmpl, p)
+	err = p.writeStringTemplateToFile("test_helpers/bat_context.go", base.TestHelpersEchoContextTmpl, p)
 	if err != nil {
 		return err
 	}

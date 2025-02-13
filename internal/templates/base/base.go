@@ -29,5 +29,5 @@ var AirTmpl string
 //go:embed Taskfile.yml.tmpl
 var TaskfileTmpl string
 
-//go:embed test_helpers/echo_context.go.tmpl
+//go:embed test_helpers/bat_context.go.tmpl
 var TestHelpersEchoContextTmpl string

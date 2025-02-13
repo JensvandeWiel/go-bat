@@ -18,12 +18,17 @@ var newCmd = &cobra.Command{
 var extras []string
 var force bool
 var packageName string
+var noGit bool
+var noInstallDeps bool
 
 func init() {
 	rootCmd.AddCommand(newCmd)
 	newCmd.Flags().StringArrayVar(&extras, "extra", []string{}, "Add extra features to the project choice of: inertia-react, inertia-svelte, database-pgsql, frontend-auth")
 	newCmd.Flags().StringVar(&packageName, "package-name", "", "The name of the package, defaults to the project name")
 	newCmd.Flags().BoolVar(&force, "force", false, "Force the creation of the project even if the directory is not empty")
+	newCmd.Flags().BoolVar(&noGit, "no-git", false, "Do not create a git repository")
+	newCmd.Flags().BoolVar(&noInstallDeps, "no-installdeps", false, "Does not install dependencies after creating the project")
+
 }
 
 func RunNew(cmd *cobra.Command, args []string) error {
@@ -38,7 +43,7 @@ func RunNew(cmd *cobra.Command, args []string) error {
 	if packageName == "" {
 		packageName = projectName
 	}
-	p, err := internal.NewProject(projectName, packageName, workDir, force, logger, internal.ParseExtras(internal.ParseExtraTypes(extras))...)
+	p, err := internal.NewProject(projectName, packageName, workDir, force, noInstallDeps, noGit, logger, internal.ParseExtras(internal.ParseExtraTypes(extras))...)
 	if err != nil {
 		return err
 	}

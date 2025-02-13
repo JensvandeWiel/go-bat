@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"text/template"
@@ -17,15 +18,17 @@ import (
 const ProjectFile = "project.json"
 
 type Project struct {
-	logger      *pkg.Logger
-	WorkDir     string     `json:"-"`
-	ProjectName string     `json:"project_name"`
-	PackageName string     `json:"package_name"`
-	Force       bool       `json:"-"`
-	Extras      []Extra    `json:"-"`
-	ExtraTypes  ExtraTypes `json:"extras"`
-	funcMap     template.FuncMap
-	tempDir     string
+	logger        *pkg.Logger
+	WorkDir       string     `json:"-"`
+	ProjectName   string     `json:"project_name"`
+	PackageName   string     `json:"package_name"`
+	Force         bool       `json:"-"`
+	Extras        []Extra    `json:"-"`
+	ExtraTypes    ExtraTypes `json:"extras"`
+	funcMap       template.FuncMap
+	tempDir       string
+	noInstallDeps bool
+	noGit         bool
 }
 
 func NewProjectFromConfig(dir string, logger *pkg.Logger) (*Project, error) {
@@ -49,7 +52,7 @@ func NewProjectFromConfig(dir string, logger *pkg.Logger) (*Project, error) {
 	return &p, nil
 }
 
-func NewProject(projectName, packageName, workDir string, force bool, logger *pkg.Logger, extras ...Extra) (*Project, error) {
+func NewProject(projectName, packageName, workDir string, force bool, noInstallDeps, noGit bool, logger *pkg.Logger, extras ...Extra) (*Project, error) {
 	tempDir, err := os.MkdirTemp(os.TempDir(), "project-*")
 	if err != nil {
 		return nil, err
@@ -61,15 +64,17 @@ func NewProject(projectName, packageName, workDir string, force bool, logger *pk
 	}
 
 	p := &Project{
-		ProjectName: projectName,
-		PackageName: packageName,
-		Extras:      extras,
-		ExtraTypes:  extraTypes,
-		WorkDir:     workDir,
-		tempDir:     tempDir,
-		logger:      logger,
-		funcMap:     make(template.FuncMap),
-		Force:       force,
+		ProjectName:   projectName,
+		PackageName:   packageName,
+		Extras:        extras,
+		ExtraTypes:    extraTypes,
+		WorkDir:       workDir,
+		tempDir:       tempDir,
+		logger:        logger,
+		funcMap:       make(template.FuncMap),
+		Force:         force,
+		noInstallDeps: noInstallDeps,
+		noGit:         noGit,
 	}
 
 	funcMap := make(template.FuncMap)
@@ -159,6 +164,20 @@ func (p *Project) Create() error {
 	err = p.moveToProjectDir()
 	if err != nil {
 		return err
+	}
+
+	if !p.noInstallDeps {
+		err = p.installDeps()
+		if err != nil {
+			return err
+		}
+	}
+
+	if !p.noGit {
+		err = p.initGit()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -444,5 +463,59 @@ func (p *Project) generateComposerFile() error {
 		return err
 	}
 
+	return nil
+}
+
+func (p *Project) installDeps() error {
+	p.logger.Debug("Installing dependencies")
+
+	// Check if task is installed
+	_, err := exec.LookPath("task")
+	if err != nil {
+		p.logger.Debug("task not found, installing task")
+		c := exec.Command("go", "install", "github.com/go-task/task/v3/cmd/task@latest")
+		c.Dir = path.Join(p.WorkDir, p.ProjectName)
+		err = c.Run()
+		if err != nil {
+			return fmt.Errorf("failed to install task: %w", err)
+		}
+	}
+
+	// Run go mod tidy
+	c := exec.Command("go", "mod", "tidy")
+	c.Dir = path.Join(p.WorkDir, p.ProjectName)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	err = c.Run()
+	if err != nil {
+		return err
+	}
+
+	// Run task installdeps
+	c2 := exec.Command("task", "installdeps")
+	c2.Dir = path.Join(p.WorkDir, p.ProjectName)
+	c2.Stdout = os.Stdout
+	c2.Stderr = os.Stderr
+	err = c2.Run()
+	if err != nil {
+		return err
+	}
+
+	p.logger.Debug("Dependencies installed")
+	return nil
+}
+
+func (p *Project) initGit() error {
+	p.logger.Debug("Initializing git")
+	c := exec.Command("git", "init")
+	c.Dir = path.Join(p.WorkDir, p.ProjectName)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	err := c.Run()
+	if err != nil {
+		return err
+	}
+
+	p.logger.Debug("Git initialized")
 	return nil
 }

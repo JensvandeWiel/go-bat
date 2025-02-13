@@ -28,9 +28,9 @@ tasks:
       ENV: dev
       CONSOLE_FORMAT: color
     cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
-      - task: build:frontend{{ end }}
-      - air -c .air.toml{{ if hasComposeFile}}
+      - task: build:frontend{{ end }}{{ if hasComposeFile}}
       - docker compose -f docker-compose.yml up -d{{ end }}
+      - air -c .air.toml
   build:
     cmds:{{ if or (isExtraEnabled "inertia-react") (isExtraEnabled "inertia-svelte")}}
       - task: build:frontend{{ end }}

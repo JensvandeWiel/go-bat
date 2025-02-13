@@ -5,8 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var (
@@ -71,7 +71,7 @@ func (s *DatabaseUserStore) CreateUser(ctx context.Context, user *models.User) (
 	var id int64
 	err := s.db.QueryRowContext(ctx, query, user.Email, user.Password, user.Name).Scan(&id)
 	if err != nil {
-		var pgErr *pgconn.PgError
+		var pgErr *pq.Error
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" { // Unique violation
 				return 0, ErrorUserExists

@@ -34,6 +34,14 @@ func WithSessionName(name string) SessionExtensionOption {
 	}
 }
 
+// WithSessionStore sets the session store
+func WithSessionStore(store sessions.Store) SessionExtensionOption {
+	return func(s *SessionExtension) error {
+		s.sessionStore = store
+		return nil
+	}
+}
+
 // WithSessionKey sets the session key
 func WithSessionKey(key string) SessionExtensionOption {
 	return func(s *SessionExtension) error {
@@ -65,9 +73,11 @@ func (s *SessionExtension) Register(app *Bat) error {
 	valkeyExtension := GetExtension[*ValkeyExtension](app)
 	s.vClient = valkeyExtension.GetClient()
 	var err error
-	s.sessionStore, err = valkeystore.NewValkeyStore(s.vClient)
-	if err != nil {
-		return err
+	if s.sessionStore == nil {
+		s.sessionStore, err = valkeystore.NewValkeyStore(s.vClient)
+		if err != nil {
+			return err
+		}
 	}
 	app.Use(
 		session.Middleware(s.sessionStore),
@@ -79,9 +89,12 @@ func (s *SessionExtension) Register(app *Bat) error {
 
 // Requirements returns the requirements for the session extension
 func (s *SessionExtension) Requirements() []reflect.Type {
-	return []reflect.Type{
-		reflect.TypeOf(ValkeyExtension{}),
+	if s.sessionStore == nil {
+		return []reflect.Type{
+			reflect.TypeOf(ValkeyExtension{}),
+		}
 	}
+	return []reflect.Type{}
 }
 
 // EnsureSession ensures that the session is created

@@ -71,7 +71,7 @@ func Serve(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	iExt, err := bat.NewInertiaExtension(frontend.DistDirFS, frontend.Manifest, true{{ if isExtraEnabled "inertia-svelte" }}, bat.WithRootTemplate(frontend.RootTemplate){{end}})
+	iExt, err := bat.NewInertiaExtension(frontend.DistDirFS, frontend.Manifest, viper.GetString("ENV") == "dev"{{ if isExtraEnabled "inertia-svelte" }}, bat.WithRootTemplate(frontend.RootTemplate){{end}})
 	if err != nil {
 		return err
 	}
